@@ -1,0 +1,32 @@
+version: "3.1"
+
+services:
+  # https://github.com/suzel/docker-postgrest
+  postgrest:
+    build:
+      context: .
+      args:
+        POSTGREST_VERSION: "12.3"
+    ports:
+      - "3000:3000"
+    environment:
+      PGRST_DB_URI: postgres://app_user:secret@postgres:5432/app_db
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: app_user
+    links:
+      - postgres:postgres
+
+  postgres:
+    image: postgres:12.3
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: app_db
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  postgres-data: {}
