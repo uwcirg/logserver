@@ -15,8 +15,6 @@ services:
 
   postgres:
     image: postgres:12.3
-    ports:
-      - "5432"
     environment:
       POSTGRES_DB: app_db
       POSTGRES_USER: app_user
