@@ -15,7 +15,7 @@ services:
       - postgres:postgres
 
   postgres:
-    image: postgres:12.3
+    image: postgres:12
     environment:
       POSTGRES_DB: app_db
       POSTGRES_USER: app_user
