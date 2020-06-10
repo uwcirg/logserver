@@ -11,8 +11,8 @@ services:
       PGRST_DB_SCHEMA: api
       PGRST_DB_ANON_ROLE: web_anon
       PGRST_JWT_SECRET: ${PGRST_JWT_SECRET}
-    links:
-      - postgres:postgres
+    depends_on:
+      - postgres
 
   postgres:
     image: postgres:12
