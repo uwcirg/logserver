@@ -5,14 +5,14 @@ services:
   postgrest:
     image: suzel/docker-postgrest
     ports:
-      - "3000:3000"
+      - ${EXTERNAL_PORT:-3000}:3000
     environment:
       PGRST_DB_URI: postgres://app_user:secret@postgres:5432/app_db
       PGRST_DB_SCHEMA: api
       PGRST_DB_ANON_ROLE: web_anon
       PGRST_JWT_SECRET: ${PGRST_JWT_SECRET}
-    links:
-      - postgres:postgres
+    depends_on:
+      - postgres
 
   postgres:
     image: postgres:12
