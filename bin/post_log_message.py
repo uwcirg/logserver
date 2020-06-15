@@ -6,7 +6,7 @@ import requests
 import sys
 
 
-def exit_verbosely(message, code=2):
+def exit_verbosely(message, code=0):
     """Call with message to exit with details echoed to stderr"""
     print(message, file=sys.stderr)
     sys.exit(code)
@@ -16,7 +16,7 @@ def envvar(var_name):
     value = getenv(var_name)
     if not value:
         exit_verbosely(
-            f"environment var `{var_name}` not defined; can't continue")
+            f"environment var `{var_name}` not defined; can't continue", 2)
     return value
 
 
@@ -36,7 +36,7 @@ def validate_json(event, column_name):
         data = json.loads(event)
     except ValueError as e:
         # couldn't parse, exit
-        exit_verbosely("event is not valid JSON: {}\n".format(e))
+        exit_verbosely("event is not valid JSON: {}\n".format(e), 2)
 
     if column_name in data and len(data) == 1:
         return data
