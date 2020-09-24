@@ -1,5 +1,7 @@
 # logserver
-API and storage for logging, event and audit messages, persisted in JSON within a PostgreSQL db
+API and storage for logging, event and audit messages, persisted in JSON
+within a PostgreSQL db, with a thin frontend provided by
+[PostgREST](http://postgrest.org/en/v7.0.0/index.html)
 
 ## Config
 Copy ``default.env`` to ``.env`` and edit.  Don't quote strings!
@@ -40,3 +42,17 @@ curl https://FQDN/events -X POST -H "Authorization: Bearer $TOKEN" \
     }
   }'
 ```
+
+## API use
+All events posted are available at:
+```http request
+/events
+```
+
+Sample query to fetch all events including ``login`` in the list of ``tags``:
+```http request
+/events?event.tags=cs.{login}
+```
+
+See [PostgREST API](http://postgrest.org/en/v7.0.0/api.html) documentation
+for additional options
