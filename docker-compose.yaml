@@ -4,6 +4,7 @@ services:
   # https://github.com/suzel/docker-postgrest
   postgrest:
     image: suzel/docker-postgrest
+    restart: unless-stopped
     ports:
       - ${EXTERNAL_PORT:-3000}:3000
     environment:
@@ -16,6 +17,7 @@ services:
 
   postgres:
     image: postgres:12
+    restart: unless-stopped
     environment:
       POSTGRES_DB: app_db
       POSTGRES_USER: app_user
