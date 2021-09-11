@@ -1,0 +1,7 @@
+# docker-compose override to expose postgrest port
+version: "3.1"
+
+services:
+  postgrest:
+    ports:
+      - ${EXTERNAL_PORT:-3000}:3000

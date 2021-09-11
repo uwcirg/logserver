@@ -5,8 +5,6 @@ services:
   postgrest:
     image: suzel/docker-postgrest
     restart: unless-stopped
-    ports:
-      - ${EXTERNAL_PORT:-3000}:3000
     environment:
       PGRST_DB_URI: postgres://app_user:secret@postgres:5432/app_db
       PGRST_DB_SCHEMA: api
