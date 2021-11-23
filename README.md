@@ -54,11 +54,12 @@ Sample query to fetch all events including ``login`` in the list of ``tags``:
 /events?event.tags=cs.{login}
 ```
 
-Sample query to fetch all events where the ``patient`` field equals ``"marcus aurelius"``
-```http request```
+Sample query to fetch all events where the ``patient`` field equals ``"marcus aurelius"``:
+```http request
 /events?select=event&event-%3E%3Epatient=eq.marcus%20aurelius
+```
 
-Sample query to fetch events where for given patient AND tag:
+Sample query to fetch events for given patient AND tag:
 ```http request
 /events?select=event&event.tags=cs.{mme-calc}&event-%3E%3Epatient=eq.marcus%20aurelius
 ```
