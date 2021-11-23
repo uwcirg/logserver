@@ -12,7 +12,7 @@ create role web_anon nologin;
 grant usage on schema api to web_anon;
 grant select on api.events to web_anon;
 
--- create privleged user to write events
+-- create privileged user to write events
 create role event_logger nologin;
 grant usage on schema api to event_logger;
 grant all on api.events to event_logger;
