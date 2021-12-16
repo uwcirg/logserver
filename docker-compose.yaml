@@ -3,7 +3,7 @@ version: "3.1"
 services:
   # https://github.com/suzel/docker-postgrest
   postgrest:
-    image: suzel/docker-postgrest
+    image: postgrest/postgrest
     restart: unless-stopped
     environment:
       PGRST_DB_URI: postgres://app_user:secret@postgres:5432/app_db
