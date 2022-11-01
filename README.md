@@ -23,6 +23,8 @@ For write access, generate a JWT at [jwt.io](https://jwt.io/#debugger-io)
   "role": "event_logger"
 }
 ```  
+
+* Do NOT check the ``secret base64 encoded`` checkbox
 * Save the ``Encoded`` JWT for use, passing as a bearer token:
 
 ```bash
