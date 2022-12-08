@@ -37,7 +37,9 @@
 ```json
 {
     "name": "sof_wrapper",
-    "user": {"DEA": "testDEAvalue", "username": "test"},
+    "user": {
+        "DEA": "testDEAvalue",
+	"username": "test"},
     "asctime": "2021-09-14 17:58:53,930",
     "message": "PDMP returned 3 MedicationRequest/Orders",
     "subject": "Patient/1",

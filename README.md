@@ -22,7 +22,7 @@ level attributes as specified below.
 The following should be common to all events on a given system:
 ```json
 {
-    "version": "1", // the event schema version, not the application version
+    "event_version": "1", // the event schema version
     "asctime": "", // ISO-8601 format including time-zone offset, preferably in UTC
     "name": "", // Application code package name, often built in to the logging system and difficult to manipulate
     "level": "INFO", // Built in to the logging package, options also include DEBUG, WARN, ERROR
@@ -33,12 +33,17 @@ System identifiers to uniquely specify the source of the event:
     "clinical-site": "", // unique name when appropriate to define jurisdiction, institution or clinic, such as "UW Harborview",
     "deployment": "", // one of ["dev", "test", "demo", "stage", "prod"]
     "system-type": "", // such as "remote" or "kiosk", if applicable
-    "system-name": "", // system identifier URL
+    "system-url": "", // system identifier URL
+```
+
+Authenticated user, or string identifier for system run jobs, etc.
+```json
+    "user": "User/1", // alternative nested JSON with attributes is fine; ideally consistent per application
 ```
 
 If acting on an identifiable entity "subject":
 ```json
-    "subject": "Patient/12
+    "subject": "Patient/12",
 ```
 
 List of topics useful for filtering:
