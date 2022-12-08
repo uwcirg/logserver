@@ -1,15 +1,16 @@
 # logserver
-API and storage for logging, event and audit messages, persisted in JSON
+API and storage for logging event and audit messages, persisted in JSON
 within a PostgreSQL db, with a thin frontend provided by
 [PostgREST](http://postgrest.org/en/v7.0.0/index.html)
 
 ## Event Schema
-*logserver* is agnostic to format of events, provided it's valid JSON.  The
-following suggestions enable common query syntax and expectations.
+**logserver** is agnostic to the format of events, provided it's valid JSON.
+The following suggestions enable common query syntax and meet expectations.
 
 A distinction is made between "top level" attributes, and those nested under
 "message".  The "message" may be a simple text string, or any level of valid
-JSON data, intended to capture the intent of the event, such a "patient/12 deleted" or "search for {...} found 0 matches".
+JSON data, intended to capture the intent of the event, such as "new consent
+signed" or "search for <...> found 0 matches".
 
 Tags is a list of strings defining general event types, with the intent to
 make filtering or searching easy.
@@ -41,7 +42,7 @@ If acting on an identifiable entity "subject", such as "Patient/12"
 
 List of topics useful for filtering
 ```json
-    "tags": ["patient", "launch", "logout", "search"],
+    "tags": ["patient", "launch", "logout", "search"], // one or more
 ```
 
 And finally, and details in the message itself, that aren't captured above,
@@ -49,11 +50,11 @@ nesting any valid JSON within message if appropriate.  The details captured
 in the "message" often come from deep in the application stack, where all of
 the above isn't so easily obtained.
 ```json
-    "message": "Description of action"
+    "message": "Description of action" // replace string with nested JSON when applicable 
 }
 ```
 
-###Project - Version schema examples for formatting `events`:
+### Example event schemas in use for the respective projects:
 
 * [COSRI - version 0](./docs/cosri_v0.md)
 * [COSRI - version 1](./docs/cosri_v1.md)
