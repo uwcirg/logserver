@@ -4,43 +4,44 @@ within a PostgreSQL db, with a thin frontend provided by
 [PostgREST](http://postgrest.org/en/v7.0.0/index.html)
 
 ## Event Schema
-**logserver** is agnostic to the format of events, provided it's valid JSON.
-The following suggestions enable common query syntax and meet expectations.
+**logserver** is agnostic to the format, provided it's valid JSON.  Any number
+of database tables can be used, but only the single **"events"** table is built
+in, containing a PostgreSQL JSONB column,  **"event"**.
+
+The following suggestions for the format of each "event" entry enable common
+query syntax and meet expectations.
 
 A distinction is made between "top level" attributes, and those nested under
 "message".  The "message" may be a simple text string, or any level of valid
 JSON data, intended to capture the intent of the event, such as "new consent
-signed" or "search for <...> found 0 matches".
+signed" or "search for <...> found 0 matches".  Message generally captures
+the specific context from the code of the event being tracked, with all other
+details collected by a routine that can collect and populate the other top
+level attributes as specified below.
 
-Tags is a list of strings defining general event types, with the intent to
-make filtering or searching easy.
-
-All other top level attributes are generally consistent on any given system,
-defining the source, user, system type, time of event, etc.
-
-The following should be common to all events and are generally built in:
+The following should be common to all events on a given system:
 ```json
 {
     "version": "1", // the event schema version, not the application version
     "asctime": "", // ISO-8601 format including time-zone offset, preferably in UTC
     "name": "", // Application code package name, often built in to the logging system and difficult to manipulate
-    "level": "INFO", // Built in to the logging package, typical values include DEBUG, WARN, ERROR
+    "level": "INFO", // Built in to the logging package, options also include DEBUG, WARN, ERROR
 ```
 
-System identifiers to uniquely specify the source of the event. 
+System identifiers to uniquely specify the source of the event:
 ```json
     "clinical-site": "", // unique name when appropriate to define jurisdiction, institution or clinic, such as "UW Harborview",
     "deployment": "", // one of ["dev", "test", "demo", "stage", "prod"]
-    "system-type": "", // such as "remote" or "kiosk"
+    "system-type": "", // such as "remote" or "kiosk", if applicable
     "system-name": "", // system identifier URL
 ```
 
-If acting on an identifiable entity "subject", such as "Patient/12"
+If acting on an identifiable entity "subject":
 ```json
     "subject": "Patient/12
 ```
 
-List of topics useful for filtering
+List of topics useful for filtering:
 ```json
     "tags": ["patient", "launch", "logout", "search"], // one or more
 ```
