@@ -5,7 +5,7 @@ within a PostgreSQL db, with a thin frontend provided by
 
 ## Event Schema
 *logserver* is agnostic to format of events, provided it's valid JSON.  The
-following suggestions enable common query syntax and expectations:
+following suggestions enable common query syntax and expectations.
 
 A distinction is made between "top level" attributes, and those nested under
 "message".  The "message" may be a simple text string, or any level of valid
@@ -17,27 +17,43 @@ make filtering or searching easy.
 All other top level attributes are generally consistent on any given system,
 defining the source, user, system type, time of event, etc.
 
+The following should be common to all events and are generally built in:
 ```json
 {
-"version": "1", // the event schema version, not the application version
-"asctime": "", // ISO-8601 format including time-zone offset, preferably in UTC
-
+    "version": "1", // the event schema version, not the application version
+    "asctime": "", // ISO-8601 format including time-zone offset, preferably in UTC
+    "name": "", // Application code package name, often built in to the logging system and difficult to manipulate
+    "level": "INFO", // Built in to the logging package, typical values include DEBUG, WARN, ERROR
 ```
 
-1. Top level attributes, such as "version" and "asctime", are typically
-consistent across all event types.  For example, "user" is generally the
-authenticated user, and available on most all events.
-2. "message", itself a top level attribute, captures the unique nature of
-the event being logged.  Examples might include "session created" or "question 1.1 skipped" and may also include any number of nested fields.
-3. "tags", itself a top level attribute, captures single term identifiers,
-useful in filtering.  Examples include "search", "logout", "patient", etc.
-4. "name", often derrived from the code module executing, not easily controlled.
-5. "clinical-site", unique name when appropriate to define jurisdiction, institution or clinic, such as "UW Harborview"
-6. "deployment", one of ["dev", "test", "demo", "stage", "prod"]
-7. "system-type", such as "remote" or "kiosk"
-8. "system-name", system identifier URL
+System identifiers to uniquely specify the source of the event. 
+```json
+    "clinical-site": "", // unique name when appropriate to define jurisdiction, institution or clinic, such as "UW Harborview",
+    "deployment": "", // one of ["dev", "test", "demo", "stage", "prod"]
+    "system-type": "", // such as "remote" or "kiosk"
+    "system-name": "", // system identifier URL
+```
 
-Project - Version examples for formatting `events`
+If acting on an identifiable entity "subject", such as "Patient/12"
+```json
+    "subject": "Patient/12
+```
+
+List of topics useful for filtering
+```json
+    "tags": ["patient", "launch", "logout", "search"],
+```
+
+And finally, and details in the message itself, that aren't captured above,
+nesting any valid JSON within message if appropriate.  The details captured
+in the "message" often come from deep in the application stack, where all of
+the above isn't so easily obtained.
+```json
+    "message": "Description of action"
+}
+```
+
+###Project - Version schema examples for formatting `events`:
 
 * [COSRI - version 0](./docs/cosri_v0.md)
 * [COSRI - version 1](./docs/cosri_v1.md)
