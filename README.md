@@ -17,7 +17,9 @@ JSON data, intended to capture the intent of the event, such as "new consent
 signed" or "search for <...> found 0 matches".  Message generally captures
 the specific context from the code of the event being tracked, with all other
 details collected by a routine that can collect and populate the other top
-level attributes as specified below.
+level attributes as specified below.  
+
+Since we anticipate that events will undergo automated processing and there is only a single 'message' attribute, it seems likely that a message will have several json attributes, rather than be a simple string.  But, either is legal.
 
 The following should be common to all events on a given system:
 ```json
