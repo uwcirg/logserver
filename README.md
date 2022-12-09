@@ -48,9 +48,9 @@ If acting on an identifiable entity "subject":
     "subject": "Patient/12",
 ```
 
-List of topics useful for filtering:
+List of topics (effectively a message "type" or "reason") useful for filtering:
 ```json
-    "tags": ["patient", "launch", "logout", "search"], // one or more
+    "tags": ["patient", "launch", "logout", "search"], // one or more tags
 ```
 
 And finally, and details in the message itself, that aren't captured above,
