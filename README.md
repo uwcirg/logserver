@@ -25,7 +25,7 @@ The following should be common to all events on a given system:
 ```json
 {
     "event_version": "1", // the event schema version
-    "asctime": "", // ISO-8601 format including time-zone offset, preferably in UTC
+    "asctime": "", // ISO-8601 format including time-zone offset
     "name": "", // Application code package name, often built in to the logging system and difficult to manipulate
     "level": "INFO", // Built in to the logging package, options also include DEBUG, WARN, ERROR
 ```
