@@ -130,5 +130,10 @@ Sample query to fetch events for given patient AND tag:
 /events?select=event&event.tags=cs.{mme-calc}&event-%3E%3Epatient=eq.marcus%20aurelius
 ```
 
+Fetch events based on datetime:
+```http request
+/events?select=event->>asctime,event->>message&event->>asctime=gte.2023-04-01&limit=25
+```
+
 See [PostgREST API](http://postgrest.org/en/v7.0.0/api.html) documentation
 for additional options
