@@ -135,5 +135,10 @@ Fetch events based on datetime:
 /events?select=event->>asctime,event->>message&event->>asctime=gte.2023-04-01&limit=25
 ```
 
+Fetch events based on datetime, and include a number of isacc-specific fields:
+```http request
+/events?select=event-%3E%3Easctime,event-%3E%3Ename,event-%3E%3Emessage,event-%3E%3Eversion,event-%3E%3Elevelname,event-%3E%3ETwilio%20messages,event-%3E%3ECommunicationRequest&event-%3E%3Easctime=gte.2023-04-18&limit=25
+```
+
 See [PostgREST API](http://postgrest.org/en/v7.0.0/api.html) documentation
 for additional options
