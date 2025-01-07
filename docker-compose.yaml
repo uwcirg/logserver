@@ -14,7 +14,7 @@ services:
       - postgres
 
   postgres:
-    image: postgres:12
+    image: postgres:${POSTGRES_IMAGE_TAG:-12}
     restart: unless-stopped
     environment:
       POSTGRES_DB: app_db
