@@ -19,11 +19,11 @@ resource nested within each `event` is cumbersome, however the following field
 parity is recommended:
 
 - `category`: major type of the event, such as:
-  - `authentication`: Events related to login or authentication.
-  - `authorization`: Events related to access control or permissions changes.
-  - `security`: General security-related events.
-  - `data-access`: Events where healthcare data is accessed or modified.
-  - `configuration`: Events involving system or configuration changes.
+  - `authentication`: events related to login or authentication.
+  - `authorization`: events related to access control or permissions changes.
+  - `security`: general security-related events.
+  - `data-access`: events where healthcare data is accessed or modified.
+  - `configuration`: events involving system or configuration changes.
 - `code`: specific type of event.  See [audit-event-sub-type valueset](
   https://www.hl7.org/fhir/valueset-audit-event-sub-type.html) for full list.
   - `login`
@@ -33,15 +33,15 @@ parity is recommended:
   - `delete`
   - `search`
 - `action`: required element to describe the type of operation performed.
-  - `C`: create - Creating a new resource, such as adding a patient.
-  - `R`: read/view/search - Data retrieved or viewed w/o modification.
+  - `C`: create - creating a new resource, such as adding a patient.
+  - `R`: read/view/search - data retrieved or viewed w/o modification.
   - `U`: update - indicates existing data was modified.
   - `D`: delete - indicates data was removed or deleted.
   - `E`: execute - indicates execution of operation or procedure.
 - `occurred`: defined only when reliance on message timestamp is inadequate
 - `patient`: the **subject** of the activity, i.e. `Patient/ab-123-ef`
 - `agent`: actor involved in the event, i.e. `Practitioner/123-abc`
-- `souce`: event reporter or system generating the audit event
+- `source`: event reporter or system generating the audit event including version
 - `entity`: data or objects used
   - `detail`: tagged value pairs for conveying additional information 
   - `query`: query parameters for query-type entities
