@@ -9,7 +9,7 @@ Basic Audit Log Patterns
 implementation guide.
 
 ## Event Schema
-**logserver** is agnostic to the format, provided it's valid JSON.  Any number
+**logserver** is agnostic to the format, provided it is valid JSON.  Any number
 of database tables can be used, but only the single `events` table is built
 in, containing a PostgreSQL JSONB column,  `event`.
 
@@ -18,6 +18,26 @@ https://www.hl7.org/fhir/auditevent.html) resource.  To generate an AuditEvent
 resource nested within each `event` is cumbersome, however the following field
 parity is recommended:
 
+NB: all fields are considered optional unless marked as **required**
+
+- `severity`: **required** element.  Use built in log level rather than adding
+  an additional `severity` field:
+  - `critical`: Critical condition with application.  Include `emergency` and
+    `alert` levels in this category.
+  - `error`: Error condition with the application.
+  - `warning`: Warning needing attention before escalation to error.
+  - `info`: Normal operational messages not requiring action.  Include
+    `notice` level in this category (normal but significant).
+  - `debug`: Debug level messages, useful to application developers.
+- `action`: **required** element to describe the type of operation performed.
+  - `C`: create - creating a new resource, such as adding a patient.
+  - `R`: read/view/search - data retrieved or viewed w/o modification.
+  - `U`: update - indicates existing data was modified.
+  - `D`: delete - indicates data was removed or deleted.
+  - `E`: execute - system or application function such as log-on, program
+    execution or perform a query/search.
+- `occurred`: Use built in log message time rather than adding an additional
+  `occurred` field.
 - `category`: major type of the event, such as:
   - `authentication`: events related to login or authentication.
   - `authorization`: events related to access control or permissions changes.
@@ -32,20 +52,13 @@ parity is recommended:
   - `update`
   - `delete`
   - `search`
-- `action`: required element to describe the type of operation performed.
-  - `C`: create - creating a new resource, such as adding a patient.
-  - `R`: read/view/search - data retrieved or viewed w/o modification.
-  - `U`: update - indicates existing data was modified.
-  - `D`: delete - indicates data was removed or deleted.
-  - `E`: execute - indicates execution of operation or procedure.
-- `occurred`: defined only when reliance on message timestamp is inadequate
 - `patient`: the **subject** of the activity, i.e. `Patient/ab-123-ef`
 - `agent`: actor involved in the event, i.e. `Practitioner/123-abc`
 - `source`: event reporter or system generating the audit event including version
 - `entity`: data or objects used
   - `detail`: tagged value pairs for conveying additional information 
   - `query`: query parameters for query-type entities
-- `outcome`: result of event.
+- `outcome`: result of event (i.e. success or failure).
   - `code`
     - `fatal`
     - `error`
