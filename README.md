@@ -8,7 +8,7 @@ Basic Audit Log Patterns
 [(BALP)](https://profiles.ihe.net/ITI/BALP/volume-1.html#1-52-basic-audit-log-patterns) 
 implementation guide.
 
-## Event Schema
+## Event Schema (version 3.0)
 **logserver** is agnostic to the format, provided it is valid JSON.  Any number
 of database tables can be used, but only the single `events` table is built
 in, containing a PostgreSQL JSONB column,  `event`.
@@ -57,62 +57,6 @@ NB: all fields are considered optional unless marked as **required**
   - `query`: query parameters for query-type entities
 - `outcome`: details in event of a failure or warning.  use `severity` to capture
   level.
-
-## Historical Schema Information Below
-
-The following suggestions for the format of each "event" entry enable common
-query syntax and meet expectations.
-
-A distinction is made between "top level" attributes, and those nested under
-"message".  The "message" may be a simple text string, or any level of valid
-JSON data, intended to capture the intent of the event, such as "new consent
-signed" or "search for <...> found 0 matches".  Message generally captures
-the specific context from the code of the event being tracked, with all other
-details collected by a routine that can collect and populate the other top
-level attributes as specified below.  
-
-Since we anticipate that events will undergo automated processing and there is only a single 'message' attribute, it seems likely that a message will have several json attributes, rather than be a simple string.  But, either is legal.
-
-The following should be common to all events on a given system:
-```json
-{
-    "event_version": "1", // the event schema version
-    "asctime": "", // ISO-8601 format including time-zone offset
-    "name": "", // Application code package name, often built in to the logging system and difficult to manipulate
-    "level": "INFO", // Built in to the logging package, options also include DEBUG, WARN, ERROR
-```
-
-System identifiers to uniquely specify the source of the event:
-```json
-    "clinical-site": "", // unique name when appropriate to define jurisdiction, institution or clinic, such as "UW Harborview",
-    "deployment": "", // one of ["dev", "test", "demo", "stage", "prod"]
-    "system-type": "", // such as "remote" or "kiosk", if applicable
-    "system-url": "", // system identifier URL
-```
-
-Authenticated user, or string identifier for system run jobs, etc.
-```json
-    "user": "User/1", // alternative nested JSON with attributes is fine; ideally consistent per application
-```
-
-If acting on an identifiable entity "subject":
-```json
-    "subject": "Patient/12",
-```
-
-List of topics (effectively a message "type" or "reason") useful for filtering:
-```json
-    "tags": ["patient", "launch", "logout", "search"], // one or more tags
-```
-
-And finally, and details in the message itself, that aren't captured above,
-nesting any valid JSON within message if appropriate.  The details captured
-in the "message" often come from deep in the application stack, where all of
-the above isn't so easily obtained.
-```json
-    "message": "Description of action" // replace string with nested JSON when applicable 
-}
-```
 
 ### Example event schemas in use for the respective projects:
 
