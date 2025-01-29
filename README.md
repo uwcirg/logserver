@@ -13,7 +13,7 @@ implementation guide.
 of database tables can be used, but only the single `events` table is built
 in, containing a PostgreSQL JSONB column,  `event`.
 
-It is desirable to generate log events complaint with the [FHIR audit event](
+It is desirable to generate log events compliant with the [FHIR audit event](
 https://www.hl7.org/fhir/auditevent.html) resource.  To generate an AuditEvent
 resource nested within each `event` is cumbersome, however the following field
 parity is recommended:
@@ -29,43 +29,34 @@ NB: all fields are considered optional unless marked as **required**
   - `info`: Normal operational messages not requiring action.  Include
     `notice` level in this category (normal but significant).
   - `debug`: Debug level messages, useful to application developers.
+- `version`: **required** logserver schema version.
 - `action`: **required** element to describe the type of operation performed.
-  - `C`: create - creating a new resource, such as adding a patient.
-  - `R`: read/view/search - data retrieved or viewed w/o modification.
-  - `U`: update - indicates existing data was modified.
-  - `D`: delete - indicates data was removed or deleted.
-  - `E`: execute - system or application function such as log-on, program
-    execution or perform a query/search.
-- `occurred`: Use built in log message time rather than adding an additional
-  `occurred` field.
-- `category`: major type of the event, such as:
-  - `authentication`: events related to login or authentication.
-  - `authorization`: events related to access control or permissions changes.
-  - `security`: general security-related events.
-  - `data-access`: events where healthcare data is accessed or modified.
-  - `configuration`: events involving system or configuration changes.
-- `code`: specific type of event.  See [audit-event-sub-type valueset](
-  https://www.hl7.org/fhir/valueset-audit-event-sub-type.html) for full list.
-  - `login`
-  - `create`
-  - `read`
-  - `update`
-  - `delete`
-  - `search`
-- `patient`: the **subject** of the activity, i.e. `Patient/ab-123-ef`
-- `agent`: actor involved in the event, i.e. `Practitioner/123-abc`
+  - `create`: creating a new resource, such as adding a patient.
+  - `read`: read/view/search - data retrieved or viewed w/o modification.
+  - `update`: indicates existing data was modified.
+  - `delete`: indicates data was removed or deleted.
+  - `execute`: system or application function such as, program execution or
+    perform a query/search.
+  - `login`: specific category for the log-in action
+  - `logout`: specific category for the log-out action
+- `occurred`: Date-Time of the event, including timestamp information.  This may
+    duplicate the logging system timestamp (such as `asctime`) but will always
+    capture the time the event took place, not when it hit the logging server.
+- `subject`: the **subject** of the activity, i.e. `Patient/ab-123-ef`
+- `agent`: actor involved in the event, generally the logged-in user:
+  - `ip_address`:  end user or requesting system's IP Address
+  - `type`: i.e. `system` or `user`
+  - `who`: i.e. `Practitioner/123-abc`
 - `source`: event reporter or system generating the audit event including version
+  - `observer`: base URL of the system generating the audit message
+  - `type`: system type such as `dhair2` or other predefined project category.
+  - `version`: version of the observer (in contrast to top level `version`)
 - `entity`: data or objects used
-  - `detail`: tagged value pairs for conveying additional information 
+  - `detail`: list of tagged value pairs for conveying additional information.
+      example pair might include `url`: `<full_url>` in contrast to `source.observer`
   - `query`: query parameters for query-type entities
-- `outcome`: result of event (i.e. success or failure).
-  - `code`
-    - `fatal`
-    - `error`
-    - `warning`
-    - `information`
-    - `success`
-  - `detail`: additional outcome detail
+- `outcome`: details in event of a failure or warning.  use `severity` to capture
+  level.
 
 ## Historical Schema Information Below
 
