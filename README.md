@@ -47,7 +47,7 @@ NB: all fields are considered optional unless marked as **required**
   - `ip_address`:  end user or requesting system's IP Address
   - `type`: i.e. `system` or `user`
   - `who`: i.e. `Practitioner/123-abc`
-- `source`: event reporter or system generating the audit event including version
+- `source`: event reporter or system generating the audit event.
   - `observer`: base URL of the system generating the audit message
   - `type`: system type such as `dhair2` or other predefined project category.
   - `version`: version of the observer (in contrast to top level `version`)
