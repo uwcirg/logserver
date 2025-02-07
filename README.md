@@ -3,69 +3,66 @@ API and storage for logging event and audit messages, persisted in JSON
 within a PostgreSQL db, with a thin frontend provided by
 [PostgREST](http://postgrest.org/en/v7.0.0/index.html)
 
-## Event Schema
-**logserver** is agnostic to the format, provided it's valid JSON.  Any number
-of database tables can be used, but only the single **"events"** table is built
-in, containing a PostgreSQL JSONB column,  **"event"**.
+The logserver serves as the **Audit Record Repository**, as detailed in the 
+Basic Audit Log Patterns
+[(BALP)](https://profiles.ihe.net/ITI/BALP/volume-1.html#1-52-basic-audit-log-patterns) 
+implementation guide.
 
-The following suggestions for the format of each "event" entry enable common
-query syntax and meet expectations.
+## Event Schema (version 3.0)
+**logserver** is agnostic to the format, provided it is valid JSON.  Any number
+of database tables can be used, but only the single `events` table is built
+in, containing a PostgreSQL JSONB column,  `event`.
 
-A distinction is made between "top level" attributes, and those nested under
-"message".  The "message" may be a simple text string, or any level of valid
-JSON data, intended to capture the intent of the event, such as "new consent
-signed" or "search for <...> found 0 matches".  Message generally captures
-the specific context from the code of the event being tracked, with all other
-details collected by a routine that can collect and populate the other top
-level attributes as specified below.  
+It is desirable to generate log events compliant with the [FHIR audit event](
+https://www.hl7.org/fhir/auditevent.html) resource.  To generate an AuditEvent
+resource nested within each `event` is cumbersome, however the following field
+parity is recommended:
 
-Since we anticipate that events will undergo automated processing and there is only a single 'message' attribute, it seems likely that a message will have several json attributes, rather than be a simple string.  But, either is legal.
+NB: all fields are considered optional unless marked as **required**
 
-The following should be common to all events on a given system:
-```json
-{
-    "event_version": "1", // the event schema version
-    "asctime": "", // ISO-8601 format including time-zone offset
-    "name": "", // Application code package name, often built in to the logging system and difficult to manipulate
-    "level": "INFO", // Built in to the logging package, options also include DEBUG, WARN, ERROR
-```
-
-System identifiers to uniquely specify the source of the event:
-```json
-    "clinical-site": "", // unique name when appropriate to define jurisdiction, institution or clinic, such as "UW Harborview",
-    "deployment": "", // one of ["dev", "test", "demo", "stage", "prod"]
-    "system-type": "", // such as "remote" or "kiosk", if applicable
-    "system-url": "", // system identifier URL
-```
-
-Authenticated user, or string identifier for system run jobs, etc.
-```json
-    "user": "User/1", // alternative nested JSON with attributes is fine; ideally consistent per application
-```
-
-If acting on an identifiable entity "subject":
-```json
-    "subject": "Patient/12",
-```
-
-List of topics (effectively a message "type" or "reason") useful for filtering:
-```json
-    "tags": ["patient", "launch", "logout", "search"], // one or more tags
-```
-
-And finally, and details in the message itself, that aren't captured above,
-nesting any valid JSON within message if appropriate.  The details captured
-in the "message" often come from deep in the application stack, where all of
-the above isn't so easily obtained.
-```json
-    "message": "Description of action" // replace string with nested JSON when applicable 
-}
-```
+- `severity`: **required** element.  Use built in log level rather than adding
+  an additional `severity` field:
+  - `critical`: Critical condition with application.  Include `emergency` and
+    `alert` levels in this category.
+  - `error`: Error condition with the application.
+  - `warning`: Warning needing attention before escalation to error.
+  - `info`: Normal operational messages not requiring action.  Include
+    `notice` level in this category (normal but significant).
+  - `debug`: Debug level messages, useful to application developers.
+- `version`: **required** logserver schema version.
+- `action`: **required** element to describe the type of operation performed.
+  - `create`: creating a new resource, such as adding a patient.
+  - `read`: read/view/search - data retrieved or viewed w/o modification.
+  - `update`: indicates existing data was modified.
+  - `delete`: indicates data was removed or deleted.
+  - `execute`: system or application function such as, program execution or
+    perform a query/search.
+  - `login`: specific category for the log-in action
+  - `logout`: specific category for the log-out action
+- `occurred`: Date-Time of the event, including timestamp information.  This may
+    duplicate the logging system timestamp (such as `asctime`) but will always
+    capture the time the event took place, not when it hit the logging server.
+- `subject`: the **subject** of the activity, i.e. `Patient/ab-123-ef`
+- `agent`: actor involved in the event, generally the logged-in user:
+  - `ip_address`:  end user or requesting system's IP Address
+  - `type`: i.e. `system` or `user`
+  - `who`: i.e. `Practitioner/123-abc`
+- `source`: event reporter or system generating the audit event.
+  - `observer`: base URL of the system generating the audit message
+  - `type`: system type such as `dhair2` or other predefined project category.
+  - `version`: version of the observer (in contrast to top level `version`)
+- `entity`: data or objects used
+  - `detail`: list of tagged value pairs for conveying additional information.
+      example pair might include `url`: `<full_url>` in contrast to `source.observer`
+  - `query`: query parameters for query-type entities
+- `outcome`: details in event of a failure or warning.  use `severity` to capture
+  level.
 
 ### Example event schemas in use for the respective projects:
 
-* [COSRI - version 0](./docs/cosri_v0.md)
+* [dhair2 - version 3](./docs/dhair2_v3.md)
 * [COSRI - version 1](./docs/cosri_v1.md)
+* [COSRI - version 0](./docs/cosri_v0.md)
 
 ## Config
 Copy ``default.env`` to ``.env`` and edit.  Don't quote strings!
