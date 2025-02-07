@@ -60,8 +60,9 @@ NB: all fields are considered optional unless marked as **required**
 
 ### Example event schemas in use for the respective projects:
 
-* [COSRI - version 0](./docs/cosri_v0.md)
+* [dhair2 - version 3](./docs/dhair2_v3.md)
 * [COSRI - version 1](./docs/cosri_v1.md)
+* [COSRI - version 0](./docs/cosri_v0.md)
 
 ## Config
 Copy ``default.env`` to ``.env`` and edit.  Don't quote strings!
