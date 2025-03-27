@@ -18,12 +18,11 @@ except subprocess.CalledProcessError as e:
     sys.exit(1)
 
 try:
-    secret_base64 = config['services']['postgrest']['environment']['PGRST_JWT_SECRET']
+    secret = config['services']['postgrest']['environment']['PGRST_JWT_SECRET']
 except KeyError:
     print("Error, PGRST_JWT_SECRET not defined")
     sys.exit(1)
 
-secret = base64.b64decode(secret_base64)
 payload = {"role": "event_logger"}
 token = jwt.encode(payload, secret, algorithm="HS256")
 
