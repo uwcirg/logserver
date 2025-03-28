@@ -227,7 +227,7 @@ Browsing to the same URL should render the single message.
 Obtain a logserver database export using the following command, from the
 deployed directory on the source system:
 
-```sql
+```bash
 docker compose exec postgres bash -c '\
 pg_dump \
 --dbname app_db \
@@ -242,7 +242,7 @@ of checkout from step #1
 Halt the service, as dropping the database won't function while `postgrest`
 maintains open connections.  Then bring up only the database container
 
-```
+```bash
 docker compose down
 docker compose up -d postgres
 ```
@@ -250,15 +250,15 @@ docker compose up -d postgres
 Drop the existing database, necessary to prevent conflicts on import.
 Recreate an empty shell
 
-```sql
+```bash
 docker compose exec postgres dropdb --username app_user app_db
 docker compose exec postgres createdb --username app_user app_db
 ```
 
 Import the pg_dump file from the source system
 
-```
-docker compose run -v /tmp/:/tmp/ postgres psql postgres://app_user:secret@postgres:5432/app_db -f /tmp/logs.sql
+```bash
+docker compose run -v /tmp/:/tmp/ postgres psql postgres://app_user:secret@postgres:5432/app_db --file /tmp/logs.sql
 ```
 
 Finally, bring back up the full service, and confirm the URL above works
