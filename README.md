@@ -8,6 +8,17 @@ Basic Audit Log Patterns
 [(BALP)](https://profiles.ihe.net/ITI/BALP/volume-1.html#1-52-basic-audit-log-patterns) 
 implementation guide.
 
+## Table of Contents
+- [Event Schema](#event-schema-version-30)
+  - [Project Specific Examples](#example-event-schemas-in-use-for-the-respective-projects)
+- [Config](#config)
+- [Roles](#roles)
+- [Access via JWT](#access-via-jwt)
+- [API use](#api-use)
+- [Advanced Query Examples](#advanced-query-examples)
+- [Direct DB access](#db-access)
+- [Reporting tools](#reporting-tools-that-use-data-from-logserver)
+
 ## Event Schema (version 3.0)
 **logserver** is agnostic to the format, provided it is valid JSON.  Any number
 of database tables can be used, but only the single `events` table is built
@@ -140,6 +151,48 @@ Fetch events based on datetime, and include a number of isacc-specific fields:
 See [PostgREST API](http://postgrest.org/en/v7.0.0/api.html) documentation
 for additional options
 
+## Advanced Query Examples
+
+Example to find `letstalktech` events filtered by source.  Using 
+[direct database access](#direct-db-access), look up available source
+from the development logserver `logs.inform.dev.cirg.uw.edu`:
+
+```sql
+select distinct(event->'source'->>'type') from events;
+    ?column?
+-----------------
+ dhair2/inform
+ shl-ltt-server
+ shl-ltt
+ external-client
+```
+
+Request all events of `source->type` = `shl-ltt-server`, from the dev `letstalktech` logserver:
+
+[https://logs.inform.dev.cirg.uw.edu/events?select=event&event->source->>type=eq.shl-ltt-server](https://logs.inform.dev.cirg.uw.edu/events?select=event&event-%3Esource-%3E%3Etype=eq.shl-ltt-server)
+
+or the first 10 with `source_type` = `shl-ltt-server` since Jan 30, 2025:
+
+[https://logs.inform.dev.cirg.uw.edu/events?select=event&event->source->>type=eq.shl-ltt-server&event->>occurred=gte.2025-01-30&order=event->>occurred&limit=10](https://logs.inform.dev.cirg.uw.edu/events?select=event&event-%3Esource-%3E%3Etype=eq.shl-ltt-server&event-%3E%3Eoccurred=gte.2025-01-30&order=event-%3E%3Eoccurred&limit=10)
+
+or only the `event->occurred` from the first 10 with `source_type` = `shl-ltt` since Jan 30, 2025:
+
+[https://logs.inform.dev.cirg.uw.edu/events?select=event->occurred&event-%3Esource->>type=eq.shl-ltt&event->>occurred=gte.2025-01-30&order=event->>occurred&limit=10](https://logs.inform.dev.cirg.uw.edu/events?select=event-%3Eoccurred&event-%3Esource-%3E%3Etype=eq.shl-ltt&event-%3E%3Eoccurred=gte.2025-01-30&order=event-%3E%3Eoccurred&limit=10)
+
+
+## Direct DB Access
+
+To access the backing postgres database, invoke `docker compose` from the
+deployed directory as follows:
+
+```
+docker compose exec postgres psql postgres://app_user:secret@postgres:5432/app_db -c '\dt api.*'
+```
+
+To simplify queries, set `api` as the search path, to make it the default schema:
+```sql
+SET search_path TO api;
+```
 ## Reporting tools that use data from logserver
 - https://github.com/uwcirg/gwen
 - https://github.com/uwcirg/logserver-tabulator
