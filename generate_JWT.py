@@ -5,9 +5,9 @@ import subprocess
 import sys
 
 try:
-    # capture output from docker compose config
+    # capture output from `docker compose config`
     result = subprocess.run(
-        ["docker compose", "config"],
+        ["docker", "compose", "config"],
         capture_output=True,
         text=True,
         check=True,
