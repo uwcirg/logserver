@@ -18,6 +18,7 @@ implementation guide.
 - [Advanced Query Examples](#advanced-query-examples)
 - [Direct DB access](#db-access)
 - [Reporting tools](#reporting-tools-that-use-data-from-logserver)
+- [Setup Development Environment](#setting-up-development-environment)
 
 ## Event Schema (version 3.0)
 **logserver** is agnostic to the format, provided it is valid JSON.  Any number
@@ -200,3 +201,68 @@ SET search_path TO api;
 ## Reporting tools that use data from logserver
 - https://github.com/uwcirg/gwen
 - https://github.com/uwcirg/logserver-tabulator
+
+## Setting up development environment
+
+These instructions detail how to set up a minimal logserver service, including
+steps to import a database from another logserver instance.
+
+1. `git clone git@github.com:uwcirg/logserver.git`  # clone this repository
+2. `cp default.env .env`  # follow instructions within
+3. `docker compose pull`  # pulls the dependent images
+4. `docker compose up -d`  # starts the containers
+
+Test the install is functional.  Obtain a JWT and use it to POST a simple example
+document.  Correct the URL to fit.
+
+```bash
+pip install pyjwt
+export TOKEN=`python3 generate_JWT.py`
+export URL="http://unbiunium.cirg.washington.edu:3000/events"
+curl $URL -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"event": {"name": "cmd line test"}}'
+```
+
+Browsing to the same URL should render the single message.
+
+Obtain a logserver database export using the following command, from the
+deployed directory on the source system:
+
+```sql
+docker compose exec postgres bash -c '\
+pg_dump \
+--dbname app_db \
+--no-owner \
+--encoding utf8 \
+--username=app_user ' > /tmp/logs.sql
+```
+
+Copy that export back to the target dev system and return to root directory
+of checkout from step #1
+
+Halt the service, as dropping the database won't function while `postgrest`
+maintains open connections.  Then bring up only the database container
+
+```
+docker compose down
+docker compose up -d postgres
+```
+
+Drop the existing database, necessary to prevent conflicts on import.
+Recreate an empty shell
+
+```sql
+docker compose exec postgres dropdb --username app_user app_db
+docker compose exec postgres createdb --username app_user app_db
+```
+
+Import the pg_dump file from the source system
+
+```
+docker compose run -v /tmp/:/tmp/ postgres psql postgres://app_user:secret@postgres:5432/app_db -f /tmp/logs.sql
+```
+
+Finally, bring back up the full service, and confirm the URL above works
+
+```bash
+docker compose up -d
+```
