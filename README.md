@@ -85,10 +85,15 @@ web_anon | read only access to the API
 event_logger | read / write access to the API
 
 ## Access via JWT
-For write access, generate a JWT at [jwt.io](https://jwt.io/#debugger-io)
+For write access, generate a JWT using the `generate_JWT.py` script in root
+of project:
 
-* Replace ``secret`` with the *unquoted* value of ``PGRST_JWT_SECRET``
-* Replace the ``PAYLOAD: DATA`` with the appropriate role
+```bash
+pip install pyjwt
+JWT=`python3 generate_JWT.py`
+```
+
+or use any other approach signing with the configured value of ``PGRST_JWT_SECRET`` (hint: see `.env`) and the following payload:
 
 ```javascript
 {
@@ -96,7 +101,6 @@ For write access, generate a JWT at [jwt.io](https://jwt.io/#debugger-io)
 }
 ```  
 
-* Do NOT check the ``secret base64 encoded`` checkbox
 * Save the ``Encoded`` JWT for use, passing as a bearer token:
 
 ```bash
