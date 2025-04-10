@@ -6,6 +6,8 @@ SELECT
     CASE
         WHEN event->>'source_system' = 'LTT' THEN 'ltt'
         WHEN event->>'legacy_id' IS NOT NULL THEN 'legacy'
+        WHEN event->>'loggerName' IS NOT NULL THEN 'ltt'
+        WHEN event->>'asctime' IS NOT NULL THEN 'legacy'
         ELSE 'unknown'
     END AS schema_version,
 
@@ -15,6 +17,8 @@ SELECT
             (event->>'event_time')::TIMESTAMPTZ
         WHEN event->>'legacy_id' IS NOT NULL THEN
             TO_TIMESTAMP(event->>'created_at', 'YYYY-MM-DD HH24:MI:SS')
+        WHEN event->>'asctime' IS NOT NULL THEN
+            TO_TIMESTAMP(event->>'asctime', 'YYYY-MM-DD HH24:MI:SS,MS')
         ELSE NULL
     END AS occurred_at,
 
@@ -22,21 +26,27 @@ SELECT
     COALESCE(
         event->>'user_id',         -- LTT format
         event->>'subject',         -- Legacy format
-        event->'actor'->>'id'      -- Keycloak-style
+        event->'actor'->>'id',     -- Keycloak-style
+        event->>'user'             -- Additional possible legacy field
     ) AS user_id,
 
     -- Event type with format-specific fallbacks
-    CASE
-        WHEN event->>'source_system' = 'LTT' THEN
-            event->>'event_type'
-        ELSE
-            COALESCE(
-                event->>'action',
-                event->>'operation'
-            )
-    END AS event_type,
+    COALESCE(
+        event->>'event_type',
+        event->>'action',
+        event->>'operation',
+        event->>'levelname'
+    ) AS event_type,
 
-    -- Add other fields following same pattern...
+    event
+FROM api.events;
+
+-- Create the materialized view separately
+CREATE MATERIALIZED VIEW api.events_processed AS
+SELECT *
+FROM api.events_view
+WHERE schema_version IN ('legacy', 'ltt');
+
 
     event
 FROM api.events;
