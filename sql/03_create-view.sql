@@ -8,7 +8,7 @@ SELECT
         WHEN event->>'legacy_id' IS NOT NULL THEN 'legacy'
         WHEN event->>'loggerName' IS NOT NULL THEN 'ltt'
         WHEN event->>'asctime' IS NOT NULL THEN 'legacy'
-        ELSE 'unknown'
+        ELSE 'null'
     END AS schema_version,
 
     -- Unified timestamp handling
