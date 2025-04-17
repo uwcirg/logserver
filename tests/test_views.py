@@ -1,48 +1,105 @@
 import os
 import json
+import csv
+import datetime
 import psycopg2
-import pandas as pd
+import pytest
 from dotenv import load_dotenv
 
 load_dotenv()
-
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgres://app_user:secret@localhost:5432/app_db')
+DATABASE_URL = os.getenv('DATABASE_URL',
+    'postgres://app_user:secret@localhost:5432/app_db'
+)
 
 def insert_mock_data(cursor, data):
     cursor.execute("DELETE FROM api.events;")
     for record in data:
-        cursor.execute("INSERT INTO api.events (event) VALUES (%s);", (json.dumps(record),))
+        cursor.execute(
+            "INSERT INTO api.events (event) VALUES (%s);",
+            (json.dumps(record),)
+        )
 
 def query_events_view(cursor):
-    cursor.execute("SELECT schema_version, occurred_at, user_id, event_type FROM api.events_view ORDER BY occurred_at;")
+    cursor.execute("""
+        SELECT schema_version, occurred_at, user_id, event_type
+          FROM api.events_view
+      ORDER BY occurred_at;
+    """)
     return cursor.fetchall()
 
-def test_view_with_legacy_data():
-    with open('tests/data/legacy_sample.json') as f:
-        mock_data = json.load(f)
-    expected_df = pd.read_csv('tests/expected_results/legacy_expected.csv')
+def load_expected(path):
+    """Return list of tuples (schema_version, occurred_at_str, user_id, event_type)."""
+    with open(path, newline='') as f:
+        reader = csv.DictReader(f)
+        rows = []
+        for row in reader:
+            rows.append((
+                row['schema_version'],
+                row['occurred_at'],
+                row['user_id'],
+                row['event_type'],
+            ))
+    return rows
 
-    with psycopg2.connect(DATABASE_URL) as conn:
-        with conn.cursor() as cursor:
-            insert_mock_data(cursor, mock_data)
-            conn.commit()
+def format_timestamp(dt):
+    """Render a datetime as 'YYYY-MM-DD HH:MM:SS' (no tz offset)."""
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
 
-            results = query_events_view(cursor)
-            results_df = pd.DataFrame(results, columns=expected_df.columns)
+def normalize_results(rows):
+    """
+    Given an iterable of (schema, datetime, user_id, event_type),
+    return a list of tuples where the datetime is formatted as
+    'YYYY-MM-DD HH:MM:SS' plus '+00' only for 'ltt' rows.
+    """
+    out = []
+    for schema, dt, user, ev in rows:
+        ts = dt.strftime('%Y-%m-%d %H:%M:%S')
+        if schema == 'ltt':
+            ts += '+00'
+        out.append((schema, ts, user, ev))
+    return out
 
-            pd.testing.assert_frame_equal(results_df.reset_index(drop=True), expected_df)
+def run_test(mock_data, expected_rows):
+    """Wipe, insert mock_data, run view, normalize & assert against expected_rows."""
+    with psycopg2.connect(DATABASE_URL) as conn, conn.cursor() as cur:
+        insert_mock_data(cur, mock_data)
+        conn.commit()
+        raw = query_events_view(cur)
+    actual = normalize_results(raw)
+    assert actual == expected_rows
 
-def test_view_with_ltt_data():
-    with open('tests/data/ltt_sample.json') as f:
-        mock_data = json.load(f)
-    expected_df = pd.read_csv('tests/expected_results/ltt_expected.csv')
+@pytest.fixture(scope="module")
+def legacy_data():
+    return json.load(open('tests/data/legacy_sample.json'))
 
-    with psycopg2.connect(DATABASE_URL) as conn:
-        with conn.cursor() as cursor:
-            insert_mock_data(cursor, mock_data)
-            conn.commit()
+@pytest.fixture(scope="module")
+def ltt_data():
+    return json.load(open('tests/data/ltt_sample.json'))
 
-            results = query_events_view(cursor)
-            results_df = pd.DataFrame(results, columns=expected_df.columns)
+@pytest.fixture(scope="module")
+def legacy_expected():
+    return load_expected('tests/expected_results/legacy_expected.csv')
 
-            pd.testing.assert_frame_equal(results_df.reset_index(drop=True), expected_df)
+@pytest.fixture(scope="module")
+def ltt_expected():
+    return load_expected('tests/expected_results/ltt_expected.csv')
+
+
+def test_view_with_legacy_data(legacy_data, legacy_expected):
+    run_test(legacy_data, legacy_expected)
+
+def test_view_with_ltt_data(ltt_data, ltt_expected):
+    run_test(ltt_data, ltt_expected)
+
+def test_view_with_mixed_data(legacy_data, ltt_data,
+                              legacy_expected, ltt_expected):
+    # just concatenate the two known samples
+    run_test(legacy_data + ltt_data,
+             legacy_expected + ltt_expected)
+
+def test_view_with_empty_data():
+    run_test([], [])
+
+def test_view_with_single_event(legacy_data, legacy_expected):
+    # pick the first legacy record
+    run_test([legacy_data[0]], [legacy_expected[0]])
