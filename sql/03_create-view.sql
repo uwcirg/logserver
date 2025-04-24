@@ -3,30 +3,43 @@
 -- Drop the existing view if it exists
 DROP VIEW IF EXISTS api.events_view;
 
--- Recreate the unified view, exposing user_id and event_type for testing
+-- Recreate the unified, source-filtered view
 CREATE OR REPLACE VIEW api.events_view AS
 SELECT
   *,
-  -- Extract user_id and event_type from the JSON
-  event->>'subject' AS user_id,
-  event->>'action'  AS event_type,
+  -- pull out a single user_id field
+  COALESCE(
+    event->>'subject',
+    event->>'user_id'
+  ) AS user_id,
 
-  -- Determine schema version: use explicit 'version' field when present
+  -- pull out a single event_type field
+  COALESCE(
+    event->>'action',
+    event->>'event_type'
+  ) AS event_type,
+
+  -- LTT first, then explicit version, else legacy
   CASE
-    WHEN event->>'version' IS NOT NULL THEN event->>'version'
+    WHEN event->>'source_system' = 'LTT' THEN 'ltt'
+    WHEN event->>'version' IS NOT NULL        THEN event->>'version'
     ELSE 'legacy'
   END AS schema_version,
 
-  -- Consolidate all timestamp formats into one timestamptz
+  -- coalesce all timestamp flavors
   COALESCE(
-    -- new schema field
     (event->>'event_time')::timestamptz,
-    -- Keycloak timestamp (ms since epoch)
-    TO_TIMESTAMP((event->>'timestamp')::bigint / 1000),
-    -- legacy created_at string
-    TO_TIMESTAMP(event->>'created_at', 'YYYY-MM-DD HH24:MI:SS'),
-    -- Python asctime format (with milliseconds)
-    TO_TIMESTAMP(event->>'asctime', 'YYYY-MM-DD HH24:MI:SS,MS')
+    TO_TIMESTAMP( (event->>'timestamp')::bigint / 1000 ),
+    TO_TIMESTAMP( event->>'created_at', 'YYYY-MM-DD HH24:MI:SS' ),
+    TO_TIMESTAMP( event->>'asctime',     'YYYY-MM-DD HH24:MI:SS,MS' )
   ) AS occurred_at
 
-FROM api.events;
+FROM api.events
+
+-- only include these source types:
+WHERE event->'source'->>'type' IN (
+  'dhair2/inform',
+  'shl-ltt-server',
+  'shl-ltt',
+  'external-client'
+);
