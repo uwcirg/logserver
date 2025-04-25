@@ -27,14 +27,13 @@ SELECT
   END AS schema_version,
 
   -- coalesce all timestamp sources, normalizing commas to dots for asctime
-  -- keep as text so '+00' isn’t lost by psycopg2
-  (COALESCE(
-    (event->>'event_time')::timestamptz,
-    (event->>'occurred')    ::timestamptz,
-    TO_TIMESTAMP(event->>'created_at', 'YYYY-MM-DD HH24:MI:SS'),
-    REPLACE(event->>'asctime', ',', '.')::timestamptz,
-    TO_TIMESTAMP((event->>'timestamp')::bigint / 1000)
-  )::timestamptz)::text AS occurred_at
+  COALESCE(
+    (event->>'event_time')::timestamptz,                                   -- ISO-8601
+    (event->>'occurred')   ::timestamptz,                                   -- dhair2
+    TO_TIMESTAMP(event->>'created_at', 'YYYY-MM-DD HH24:MI:SS'),           -- legacy
+    REPLACE(event->>'asctime', ',', '.')::timestamptz,                     -- Python asctime w/ ms or zone
+    TO_TIMESTAMP((event->>'timestamp')::bigint / 1000)                     -- epoch-ms
+  ) AS occurred_at
 
 FROM api.events
 WHERE
