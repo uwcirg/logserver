@@ -26,20 +26,18 @@ SELECT
     ELSE 'legacy'
   END AS schema_version,
 
-  -- coalesce all timestamp sources, including zoned asctime
+  -- coalesce all timestamp sources, normalizing commas to dots for asctime
   COALESCE(
-    -- ISO‐8601 event_time
+    -- new-standard ISO event_time
     (event->>'event_time')::timestamptz,
-    -- top‐level `occurred`
-    (event->>'occurred') ::timestamptz,
-    -- zoned asctime
-    (event->>'asctime')  ::timestamptz,
-    -- epoch‐ms timestamp
-    TO_TIMESTAMP((event->>'timestamp')::bigint/1000),
-    -- legacy created_at
+    -- dhair2-style top-level occurred
+    (event->>'occurred')    ::timestamptz,
+    -- legacy created_at string
     TO_TIMESTAMP(event->>'created_at', 'YYYY-MM-DD HH24:MI:SS'),
-    -- Python asctime without zone
-    TO_TIMESTAMP(event->>'asctime', 'YYYY-MM-DD HH24:MI:SS,MS')
+    -- any asctime (with comma ms or +00:00 zone) by replacing comma with dot
+    REPLACE(event->>'asctime', ',', '.')::timestamptz,
+    -- epoch-ms timestamp fallback
+    TO_TIMESTAMP((event->>'timestamp')::bigint / 1000)
   ) AS occurred_at
 
 FROM api.events
