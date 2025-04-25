@@ -13,10 +13,10 @@ SELECT
 
   -- flatten event_type: action, event_type, message, or first tag
   COALESCE(
+    event->'tags'->>0,     -- pick "logout" (the tag) before the message
     event->>'action',
     event->>'event_type',
-    event->>'message',
-    event->'tags'->>0
+    event->>'message'
   ) AS event_type,
 
   -- schema_version: LTT first, then version, else legacy
