@@ -27,18 +27,14 @@ SELECT
   END AS schema_version,
 
   -- coalesce all timestamp sources, normalizing commas to dots for asctime
-  COALESCE(
-    -- new-standard ISO event_time
+  -- keep as text so '+00' isn’t lost by psycopg2
+  (COALESCE(
     (event->>'event_time')::timestamptz,
-    -- dhair2-style top-level occurred
     (event->>'occurred')    ::timestamptz,
-    -- legacy created_at string
     TO_TIMESTAMP(event->>'created_at', 'YYYY-MM-DD HH24:MI:SS'),
-    -- any asctime (with comma ms or +00:00 zone) by replacing comma with dot
     REPLACE(event->>'asctime', ',', '.')::timestamptz,
-    -- epoch-ms timestamp fallback
     TO_TIMESTAMP((event->>'timestamp')::bigint / 1000)
-  ) AS occurred_at
+  )::timestamptz)::text AS occurred_at
 
 FROM api.events
 WHERE
