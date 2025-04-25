@@ -4,11 +4,11 @@ DROP VIEW IF EXISTS api.events_view;
 CREATE OR REPLACE VIEW api.events_view AS
 SELECT
   *,  
-  -- flatten user_id 
+  -- flatten user_id: pick first array element, then scalar field, then fallback
   COALESCE(
-    event->>'subject',
-    event->>'user_id',
-    event->'subject'->>0
+    event->'subject'->>0,    -- dhair2-style array
+    event->>'subject',       -- simple string
+    event->>'user_id'        -- legacy key
   ) AS user_id,
 
   -- flatten event_type: action, event_type, message, or first tag
