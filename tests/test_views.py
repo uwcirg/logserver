@@ -11,6 +11,9 @@ DATABASE_URL = os.getenv('DATABASE_URL',
     'postgres://app_user:secret@localhost:5432/app_db'
 )
 
+# Path helper
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+
 def insert_mock_data(cursor, data):
     cursor.execute("DELETE FROM api.events;")
     for record in data:
@@ -68,6 +71,23 @@ def run_test(mock_data, expected_rows):
     actual = normalize_results(raw)
     assert actual == expected_rows
 
+@pytest.fixture
+def isacc_data():
+    path = os.path.join(DATA_DIR, "isacc_sample.json")
+    with open(path, 'r') as f:
+        return json.load(f)
+
+@pytest.fixture
+def isacc_expected():
+    return [
+        (
+            "3.0",                             # version → schema_version
+            "2025-04-23 14:22:10+00",          # occurred_at
+            "Practitioner/ABC-123",            # user_id (from subject)
+            "login"                            # event_type
+        )
+    ]
+
 @pytest.fixture(scope="module")
 def legacy_data():
     return json.load(open('tests/data/legacy_sample.json'))
@@ -103,3 +123,6 @@ def test_view_with_empty_data():
 def test_view_with_single_event(legacy_data, legacy_expected):
     # pick the first legacy record
     run_test([legacy_data[0]], [legacy_expected[0]])
+
+def test_view_with_isacc_data(isacc_data, isacc_expected):
+    run_test(isacc_data, isacc_expected)
