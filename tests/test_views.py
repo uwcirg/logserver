@@ -57,7 +57,7 @@ def normalize_results(rows):
     out = []
     for schema, dt, user, ev in rows:
         ts = dt.strftime('%Y-%m-%d %H:%M:%S')
-        if schema == 'ltt':
+        if schema !== 'legacy':
             ts += '+00'
         out.append((schema, ts, user, ev))
     return out
