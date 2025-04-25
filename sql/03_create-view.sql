@@ -37,12 +37,12 @@ SELECT
 
 FROM api.events
 WHERE
-  event->>'version' IS NULL
+  -- include every event that carries a version
+  event->>'version' IS NOT NULL
+  -- plus any un-versioned (legacy/LTT) events from known sources
   OR event->'source'->>'type' IN (
     'dhair2/inform',
     'shl-ltt-server',
     'shl-ltt',
-    'external-client',
-    'isacc-project',
-    'other-approved'
+    'external-client'
   );
