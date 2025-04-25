@@ -1,0 +1,25 @@
+[
+  {
+    "version": "1",
+    "name": "sof_wrapper",
+    "tags": ["launch"],
+    "asctime": "2021-09-14 17:52:31,516+00:00",
+    "clinical-site": "Demo",
+    "deployment": "demo",
+    "system-name": "http://backend.cosri-demo.cirg.washington.edu/",
+    "message": "launch",
+    "subject": "Patient/1",
+    "levelname": "INFO"
+  },
+  {
+    "version": "1",
+    "name": "patientsearch",
+    "tags": ["logout"],
+    "asctime": "2021-09-17 00:04:08,187+00:00",
+    "clinical-site": "Demo",
+    "deployment": "demo",
+    "system-name": "http://dashboard.cosri-demo.cirg.washington.edu/",
+    "message": "logout on request",
+    "levelname": "INFO"
+  }
+]

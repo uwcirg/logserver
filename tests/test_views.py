@@ -88,6 +88,46 @@ def isacc_expected():
         )
     ]
 
+@pytest.fixture
+def dhair2_data():
+    path = os.path.join(DATA_DIR, "dhair2_inform_sample.json")
+    return json.load(open(path))
+
+@pytest.fixture
+def dhair2_expected():
+    return [
+        (
+            "3.0",                      # version field
+            "2025-01-31 00:44:18+00",   # parsed from occurred
+            "patients/607",             # first item from subject array
+            "create"                    # action
+        )
+    ]
+
+@pytest.fixture
+def cosri_v2_data():
+    path = os.path.join(DATA_DIR, "cosri_v2_sample.json")
+    return json.load(open(path))
+
+@pytest.fixture
+def cosri_v2_expected():
+    return [
+        # first event: launch
+        (
+            "1",                            # version
+            "2021-09-14 17:52:31+00",       # occurred_at (zoned)
+            "Patient/1",                    # user_id
+            "launch"                        # event_type (from tags[0] or message)
+        ),
+        # second event: logout
+        (
+            "1",
+            "2021-09-17 00:04:08+00",
+            "Patient/1",
+            "logout"                        # tags[0] = "logout"
+        )
+    ]
+
 @pytest.fixture(scope="module")
 def legacy_data():
     return json.load(open('tests/data/legacy_sample.json'))
@@ -126,3 +166,9 @@ def test_view_with_single_event(legacy_data, legacy_expected):
 
 def test_view_with_isacc_data(isacc_data, isacc_expected):
     run_test(isacc_data, isacc_expected)
+
+def test_view_with_dhair2_data(dhair2_data, dhair2_expected):
+    run_test(dhair2_data, dhair2_expected)
+
+def test_view_with_cosri_v2_data(cosri_v2_data, cosri_v2_expected):
+    run_test(cosri_v2_data, cosri_v2_expected)
