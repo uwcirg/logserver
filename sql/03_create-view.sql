@@ -11,11 +11,11 @@ SELECT
     event->>'user_id'        -- legacy key
   ) AS user_id,
 
-  -- flatten event_type: action, event_type, message, or first tag
+  -- flatten event_type: use explicit action first, then event_type, then tags, then message
   COALESCE(
-    event->'tags'->>0,     -- pick "logout" (the tag) before the message
     event->>'action',
     event->>'event_type',
+    event->'tags'->>0,
     event->>'message'
   ) AS event_type,
 
