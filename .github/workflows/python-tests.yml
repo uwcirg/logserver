@@ -51,6 +51,8 @@ jobs:
       - name: Load integration dataset
         env:
           PGPASSWORD: postgres
+          PGHOST:   localhost
+          PGUSER:   postgres
         run: |
           psql -h localhost -U postgres -d test_db < datasets/logs.sql
     
@@ -58,7 +60,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest psycopg2-binary python-dotenv
+          pip install -r requirements.txt
 
       # 9. Run pytest
       - name: Run tests
