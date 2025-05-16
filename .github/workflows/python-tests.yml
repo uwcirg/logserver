@@ -55,12 +55,12 @@ jobs:
           psql -h localhost -U postgres -d test_db < datasets/logs.sql
 
     
-     - name: Create schema & view
-       env:
-         PGPASSWORD: postgres
-       run: |
-         psql -h localhost -U postgres -d test_db -f sql/01_create-tables.sql
-         psql -h localhost -U postgres -d test_db -f sql/03_create-view.sql
+      - name: Create schema & view
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d test_db -f sql/01_create-tables.sql
+          psql -h localhost -U postgres -d test_db -f sql/03_create-view.sql
 
       # 8. Install dependencies
       - name: Install dependencies
