@@ -21,6 +21,7 @@ SELECT
 
   -- schema_version: LTT first, then version, else legacy
   CASE
+    WHEN event->>'realmId' IS NOT NULL                  THEN 'keycloak'
     WHEN event->>'source_system' = 'LTT'   THEN 'ltt'
     WHEN event->>'version'       IS NOT NULL THEN event->>'version'
     ELSE 'legacy'
@@ -32,6 +33,7 @@ SELECT
     (event->>'occurred')   ::timestamptz,                                   -- dhair2
     TO_TIMESTAMP(event->>'created_at', 'YYYY-MM-DD HH24:MI:SS'),           -- legacy
     REPLACE(event->>'asctime', ',', '.')::timestamptz,                     -- Python asctime w/ ms or zone
+    -- Keycloak’s epoch-ms timestamp:
     TO_TIMESTAMP((event->>'timestamp')::bigint / 1000)                     -- epoch-ms
   ) AS occurred_at
 

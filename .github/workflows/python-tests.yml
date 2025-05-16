@@ -50,8 +50,8 @@ jobs:
       # 7. Load the integration dump so tests/test_integration_logs.py has data
       - name: Load integration dataset
         run: |
-          psql -d test_db < datasets/logs.sql
-
+          psql -h localhost -U postgres -d test_db < datasets/logs.sql
+    
       # 8. Install dependencies
       - name: Install dependencies
         run: |
