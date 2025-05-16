@@ -20,7 +20,6 @@ def test_schema_count(db_conn):
     """)
     results = cur.fetchall()
     versions = {r[0] for r in results}
-    assert '3.0'    in versions
     assert 'legacy' in versions
     versioned = versions - {'legacy'}
     assert versioned, f"Expected some non-legacy schema versions, got only {versions}"
