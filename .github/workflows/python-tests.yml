@@ -49,8 +49,8 @@ jobs:
 
       # 7. Load the integration dump so tests/test_integration_logs.py has data
       - name: Load integration dataset
-	env:
-	  PGPASSWORD: postgres
+        env:
+          PGPASSWORD: postgres
         run: |
           psql -h localhost -U postgres -d test_db < datasets/logs.sql
     
