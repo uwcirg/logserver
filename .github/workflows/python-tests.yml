@@ -63,6 +63,6 @@ jobs:
       # 9. Run pytest
       - name: Run tests
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-        run: |
-          pytest --maxfail=1 --disable-warnings -v
+          # override default app_db URL so pytest runs against test_db
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+        run: pytest --maxfail=1 --disable-warnings -v
