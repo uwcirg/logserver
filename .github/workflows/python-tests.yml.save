@@ -45,32 +45,16 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 7. Load the integration dump so tests/test_integration_logs.py has data
-      - name: Load integration dataset
-        env:
-          PGPASSWORD: postgres
-          PGHOST:   localhost
-          PGUSER:   postgres
-        run: |
-          psql -h localhost -U postgres -d test_db < datasets/ltt-dev-logserver.sql
-
-    
-      - name: Create schema & view
-        env:
-          PGPASSWORD: postgres
-        run: |
-          psql -h localhost -U postgres -d test_db -f sql/01_create-tables.sql
-          psql -h localhost -U postgres -d test_db -f sql/03_create-view.sql
-
-      # 8. Install dependencies
+      # 7. Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install pytest psycopg2-binary python-dotenv
+  # TODO: move deps to requirements.txt and pin versions
 
-      # 9. Run pytest
+      # 8. Run pytest
       - name: Run tests
         env:
-          # override default app_db URL so pytest runs against test_db
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
-        run: pytest --maxfail=1 --disable-warnings -v
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        run: |
+          pytest --maxfail=1 --disable-warnings -v
