@@ -7,14 +7,17 @@ import pytest
 from dotenv import load_dotenv
 
 load_dotenv()
-DATABASE_URL = os.getenv('DATABASE_URL',
+DATABASE_URL = os.getenv(
+    'DATABASE_URL',
     'postgres://app_user:secret@localhost:5432/app_db'
 )
 
 # Path helper
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
+
 def insert_mock_data(cursor, data):
+    """Delete existing rows and insert a list of JSON event records."""
     cursor.execute("DELETE FROM api.events;")
     for record in data:
         cursor.execute(
@@ -22,7 +25,9 @@ def insert_mock_data(cursor, data):
             (json.dumps(record),)
         )
 
+
 def query_events_view(cursor):
+    """Run the view query and return all rows."""
     cursor.execute("""
         SELECT schema_version, occurred_at, user_id, event_type
           FROM api.events_view
@@ -30,8 +35,12 @@ def query_events_view(cursor):
     """)
     return cursor.fetchall()
 
+
 def load_expected(path):
-    """Return list of tuples (schema_version, occurred_at_str, user_id, event_type)."""
+    """
+    Load expected results from a CSV at `path`.
+    Returns list of tuples: (schema_version, occurred_at, user_id, event_type).
+    """
     with open(path, newline='') as f:
         reader = csv.DictReader(f)
         rows = []
@@ -44,15 +53,16 @@ def load_expected(path):
             ))
     return rows
 
+
 def format_timestamp(dt):
     """Render a datetime as 'YYYY-MM-DD HH:MM:SS' (no tz offset)."""
     return dt.strftime('%Y-%m-%d %H:%M:%S')
 
+
 def normalize_results(rows):
     """
-    Given an iterable of (schema, datetime, user_id, event_type),
-    return a list of tuples where the datetime is formatted as
-    'YYYY-MM-DD HH:MM:SS' plus '+00' only for 'ltt' rows.
+    Given iterable of (schema, datetime, user_id, event_type),
+    format datetime and append '+00' for non-legacy schemas.
     """
     out = []
     for schema, dt, user, ev in rows:
@@ -62,20 +72,38 @@ def normalize_results(rows):
         out.append((schema, ts, user, ev))
     return out
 
-def run_test(mock_data, expected_rows):
-    """Wipe, insert mock_data, run view, normalize & assert against expected_rows."""
-    with psycopg2.connect(DATABASE_URL) as conn, conn.cursor() as cur:
-        insert_mock_data(cur, mock_data)
-        conn.commit()
-        raw = query_events_view(cur)
+
+# --------------------------------------------------------------------------
+# Provide a single shared DB connection for all tests in this module
+@pytest.fixture(scope="module")
+def db_conn():
+    conn = psycopg2.connect(DATABASE_URL)
+    yield conn
+    conn.close()
+# --------------------------------------------------------------------------
+
+
+def run_test(mock_data, expected_rows, db_conn):
+    """
+    Wipe existing events, insert `mock_data` via db_conn,
+    run the view, normalize results, and assert equality to `expected_rows`.
+    """
+    cur = db_conn.cursor()
+    insert_mock_data(cur, mock_data)
+    db_conn.commit()
+    raw = query_events_view(cur)
     actual = normalize_results(raw)
     assert actual == expected_rows
+
+
+# --- JSON-fixture and expected-results fixtures ---------------------------
 
 @pytest.fixture
 def isacc_data():
     path = os.path.join(DATA_DIR, "isacc_sample.json")
     with open(path, 'r') as f:
         return json.load(f)
+
 
 @pytest.fixture
 def isacc_expected():
@@ -88,10 +116,12 @@ def isacc_expected():
         )
     ]
 
+
 @pytest.fixture
 def dhair2_data():
     path = os.path.join(DATA_DIR, "dhair2_inform_sample.json")
     return json.load(open(path))
+
 
 @pytest.fixture
 def dhair2_expected():
@@ -104,10 +134,12 @@ def dhair2_expected():
         )
     ]
 
+
 @pytest.fixture
 def cosri_v2_data():
     path = os.path.join(DATA_DIR, "cosri_v2_sample.json")
     return json.load(open(path))
+
 
 @pytest.fixture
 def cosri_v2_expected():
@@ -117,7 +149,7 @@ def cosri_v2_expected():
             "1",                            # version
             "2021-09-14 17:52:31+00",       # occurred_at (zoned)
             "Patient/1",                    # user_id
-            "launch"                        # event_type (from tags[0] or message)
+            "launch"                        # event_type
         ),
         # second event: logout
         (
@@ -128,47 +160,64 @@ def cosri_v2_expected():
         )
     ]
 
+
 @pytest.fixture(scope="module")
 def legacy_data():
     return json.load(open('tests/data/legacy_sample.json'))
+
 
 @pytest.fixture(scope="module")
 def ltt_data():
     return json.load(open('tests/data/ltt_sample.json'))
 
+
 @pytest.fixture(scope="module")
 def legacy_expected():
     return load_expected('tests/expected_results/legacy_expected.csv')
+
 
 @pytest.fixture(scope="module")
 def ltt_expected():
     return load_expected('tests/expected_results/ltt_expected.csv')
 
 
-def test_view_with_legacy_data(legacy_data, legacy_expected):
-    run_test(legacy_data, legacy_expected)
+# --- Tests ------------------------------------------------------------------
 
-def test_view_with_ltt_data(ltt_data, ltt_expected):
-    run_test(ltt_data, ltt_expected)
+def test_view_with_legacy_data(db_conn, legacy_data, legacy_expected):
+    run_test(legacy_data, legacy_expected, db_conn)
 
-def test_view_with_mixed_data(legacy_data, ltt_data,
+
+def test_view_with_ltt_data(db_conn, ltt_data, ltt_expected):
+    run_test(ltt_data, ltt_expected, db_conn)
+
+
+def test_view_with_mixed_data(db_conn,
+                              legacy_data, ltt_data,
                               legacy_expected, ltt_expected):
     # just concatenate the two known samples
-    run_test(legacy_data + ltt_data,
-             legacy_expected + ltt_expected)
+    run_test(
+        legacy_data + ltt_data,
+        legacy_expected + ltt_expected,
+        db_conn
+    )
 
-def test_view_with_empty_data():
-    run_test([], [])
 
-def test_view_with_single_event(legacy_data, legacy_expected):
+def test_view_with_empty_data(db_conn):
+    run_test([], [], db_conn)
+
+
+def test_view_with_single_event(db_conn, legacy_data, legacy_expected):
     # pick the first legacy record
-    run_test([legacy_data[0]], [legacy_expected[0]])
+    run_test([legacy_data[0]], [legacy_expected[0]], db_conn)
 
-def test_view_with_isacc_data(isacc_data, isacc_expected):
-    run_test(isacc_data, isacc_expected)
 
-def test_view_with_dhair2_data(dhair2_data, dhair2_expected):
-    run_test(dhair2_data, dhair2_expected)
+def test_view_with_isacc_data(db_conn, isacc_data, isacc_expected):
+    run_test(isacc_data, isacc_expected, db_conn)
 
-def test_view_with_cosri_v2_data(cosri_v2_data, cosri_v2_expected):
-    run_test(cosri_v2_data, cosri_v2_expected)
+
+def test_view_with_dhair2_data(db_conn, dhair2_data, dhair2_expected):
+    run_test(dhair2_data, dhair2_expected, db_conn)
+
+
+def test_view_with_cosri_v2_data(db_conn, cosri_v2_data, cosri_v2_expected):
+    run_test(cosri_v2_data, cosri_v2_expected, db_conn)
