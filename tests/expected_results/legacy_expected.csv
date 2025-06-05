@@ -1,3 +1,0 @@
-schema_version,occurred_at,user_id,event_type
-legacy,2023-04-09 15:00:00,user123,login
-legacy,2023-04-10 16:30:00,user456,logout
