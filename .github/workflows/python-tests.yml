@@ -46,23 +46,15 @@ jobs:
           python-version: '3.11'
 
       # 7. Load the integration dump so tests/test_integration_logs.py has data
-      - name: Load integration dataset
+      - name: Load `logs100.sql` Dataset (includes schema)
         env:
           PGPASSWORD: postgres
           PGHOST:   localhost
           PGUSER:   postgres
         run: |
-          psql -h localhost -U postgres -d test_db < datasets/ltt-dev-logserver.sql
+          psql -h localhost -U postgres -d test_db < logs100.sql
 
     
-      - name: Create schema & view
-        env:
-          PGPASSWORD: postgres
-        run: |
-          psql -h localhost -U postgres -d test_db -f sql/01_create-tables.sql
-          psql -h localhost -U postgres -d test_db -f sql/03_create-view.sql
-
-      # 8. Install dependencies
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
