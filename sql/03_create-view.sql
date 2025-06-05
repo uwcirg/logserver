@@ -27,6 +27,7 @@ SELECT
     WHEN event->>'realmId' IS NOT NULL          THEN 'legacy'
     WHEN event->>'source_system' = 'LTT'         THEN 'ltt'
     WHEN event->>'schema_version' IS NOT NULL    THEN event->>'schema_version'
+    WHEN event->>'version' IS NOT NULL           THEN event->>'version'
     ELSE 'legacy'
   END AS schema_version,
 
