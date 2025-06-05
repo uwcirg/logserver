@@ -1,5 +1,6 @@
 name: Python Tests
 
+
 # 1. Run on every push
 on:
   push: {}
@@ -29,6 +30,7 @@ jobs:
       # 4. Check out code
       - uses: actions/checkout@v3
 
+
       # 5. Create test database & apply schema
       - name: Initialize database
         env:
@@ -40,10 +42,12 @@ jobs:
           psql -h localhost -U postgres -c "CREATE DATABASE test_db;"
 
       # 6. Set up Python
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+
 
       # 7. Load the integration dump so tests/test_integration_logs.py has data
       - name: Load `logs100.sql` Dataset (includes schema)
@@ -65,3 +69,4 @@ jobs:
           # override default app_db URL so pytest runs against test_db
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
         run: pytest --maxfail=1 --disable-warnings -v
+
