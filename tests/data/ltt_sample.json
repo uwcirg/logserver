@@ -1,4 +1,0 @@
-[
-  {"source_system": "LTT", "event_time": "2023-04-11T17:05:00Z", "user_id": "user789", "event_type": "user.signup"},
-  {"source_system": "LTT", "event_time": "2023-04-12T12:30:00Z", "user_id": "user012", "event_type": "user.login"}
-]
