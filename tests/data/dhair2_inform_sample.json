@@ -1,0 +1,13 @@
+[
+  {
+    "level": "info",
+    "version": "3.0",
+    "source": {
+      "observer": "https://ubu.mcjustin.dev.cirg.uw.edu",
+      "type": "dhair2/inform"
+    },
+    "occurred": "2025-01-31T00:44:18Z",
+    "subject": ["patients/607"],
+    "action": "create"
+  }
+]

@@ -1,0 +1,4 @@
+[
+  {"asctime": "2023-04-09 15:00:00,731", "subject": "user123", "action": "login"},
+  {"legacy_id": "1002", "created_at": "2023-04-10 16:30:00", "subject": "user456", "action": "logout"}
+]
