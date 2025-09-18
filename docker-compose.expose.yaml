@@ -5,6 +5,3 @@ services:
   postgrest:
     ports:
       - ${EXTERNAL_PORT:-3000}:3000
-  postgres:
-    ports:
-      - ${DB_EXTERNAL_PORT:-5432}:5432
