@@ -153,6 +153,11 @@ Fetch events based on datetime, and include a number of isacc-specific fields:
 /events?select=event-%3E%3Easctime,event-%3E%3Ename,event-%3E%3Emessage,event-%3E%3Eversion,event-%3E%3Elevelname,event-%3E%3ETwilio%20messages,event-%3E%3ECommunicationRequest&event-%3E%3Easctime=gte.2023-04-18&limit=25
 ```
 
+Fetch events based on datetime and multiple tags (example from sof cnics pro):
+```http request
+/events?select=id,event->>asctime,event->>message,event->agent,event->>authSessionID,event->>subject,event->tags&event->tags=cs.["patient-summary-front-end","authSessionStarted"]&event->>asctime=gt.2026-05-06
+```
+
 See [PostgREST API](http://postgrest.org/en/v7.0.0/api.html) documentation
 for additional options
 
