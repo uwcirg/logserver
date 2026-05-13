@@ -193,6 +193,10 @@ deployed directory as follows:
 ```
 docker compose exec postgres psql postgres://app_user:secret@postgres:5432/app_db -c '\dt api.*'
 ```
+Another variation, this one from `embedhw-environments`:
+```
+docker compose exec db psql -U postgres app_db
+```
 
 To simplify queries, set `api` as the search path, to make it the default schema:
 ```sql
